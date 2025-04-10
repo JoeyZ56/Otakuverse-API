@@ -19,10 +19,8 @@ ConnectDB();
 
 // Routes
 app.use("/api/auth", require("./routes/authRoute"));
-app.use("/api/bio", require("./routes/bioRoute"));
 app.use("/api/comments", require("./routes/commentRoute"));
 app.use("/api/post", require("./routes/postsRoute"));
-app.use("/api/profile-image", require("./routes/profileImageRoute"));
 app.use("/api/users", require("./routes/userRoute"));
 
 // Base route

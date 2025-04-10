@@ -5,8 +5,10 @@ const {
   createComment,
   deleteComment,
 } = require("../controllers/commentController");
+const verifyToken = require("../middleware/authMiddleware");
 
 router.get("/", getComments);
-router.post("/", createComment);
+router.post("/", verifyToken, createComment);
+router.delete("/:id", verifyToken, deleteComment);
 
 module.exports = router;

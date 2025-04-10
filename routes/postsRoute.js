@@ -4,8 +4,9 @@ const {
   getPostById,
   deletePostById,
 } = require("../controllers/postsController");
+const verifyToken = require("../middleware/authMiddleware");
 
 router.get("/:id", getPostById);
-router.delete("/:id", deletePostById);
+router.delete("/:id", verifyToken, deletePostById);
 
 module.exports = router;
