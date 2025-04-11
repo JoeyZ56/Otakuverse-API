@@ -64,7 +64,7 @@ const loginUser = async (req, res) => {
     //Checks Password
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
     if (!isPasswordCorrect) {
-      return res.status(401).send("Wrong credentials");
+      return res.status(401).json({ message: "Wrong Credentials" });
     }
 
     //JWT

@@ -1,30 +1,20 @@
 const Post = require("../models/Post");
+const User = require("../models/User");
 const ConnectDB = require("../libs/db");
-
-//Get Posts (Public)
-const getPostById = async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    await ConnectDB();
-
-    const post = await Post.findById(id);
-
-    res.status(200).json(post);
-  } catch (err) {
-    console.error("Failed to GET post:", err);
-    res.status(500).send("Database Error");
-  }
-};
 
 //POST Create Post (Token Protected)
 const createPost = async (req, res) => {
-  console.log("createPost controller hit");
   try {
     await ConnectDB();
 
     const { title, content, excerpt } = req.body;
-    const { id: userId, name, profileImage } = req.user;
+    const userId = req.user.id;
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).send("User not found");
+    }
 
     if (!req.file) {
       return res.status(400).send("Image file required");
@@ -34,9 +24,14 @@ const createPost = async (req, res) => {
       title,
       excerpt,
       content,
-      author: userId,
-      username: name,
-      profileImage: profileImage || "",
+      author: user._id,
+      username: user.name,
+      profileImage: user.profileImage?.data
+        ? {
+            data: user.profileImage.data,
+            contentType: user.profileImage.contentType,
+          }
+        : undefined,
       img: {
         data: req.file.buffer,
         contentType: req.file.mimetype,
@@ -53,6 +48,36 @@ const createPost = async (req, res) => {
   } catch (err) {
     console.error("Error saving post to DB:", err);
     res.status(500).send("Database save fail");
+  }
+};
+
+//Get All posts (public)
+const getAllPosts = async (req, res) => {
+  try {
+    await ConnectDB();
+
+    const posts = await Post.find().sort({ createdAt: -1 });
+
+    res.status(200).json(posts);
+  } catch (error) {
+    console.error("Failed to GET ALL posts:", err);
+    res.status(500).send("Database Error");
+  }
+};
+
+//Get Post By Id (Public)
+const getPostById = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await ConnectDB();
+
+    const post = await Post.findById(id);
+
+    res.status(200).json(post);
+  } catch (err) {
+    console.error("Failed to GET post:", err);
+    res.status(500).send("Database Error");
   }
 };
 
@@ -84,4 +109,4 @@ const deletePostById = async (req, res) => {
   }
 };
 
-module.exports = { createPost, getPostById, deletePostById };
+module.exports = { createPost, getAllPosts, getPostById, deletePostById };

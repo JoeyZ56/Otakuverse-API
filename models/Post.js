@@ -41,7 +41,8 @@ const postSchema = new Schema(
       required: true,
     },
     profileImage: {
-      type: String,
+      data: Buffer,
+      contentType: String,
     },
   },
   { timestamps: true }

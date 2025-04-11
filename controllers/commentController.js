@@ -1,25 +1,6 @@
 const Comments = require("../models/Comments");
 const ConnectDB = require("../libs/db");
 
-// GET Comments (Public)
-const getComments = async (req, res) => {
-  const { postId, username } = req.query;
-
-  try {
-    await ConnectDB();
-
-    const query = {};
-    if (postId) query.postId = postId;
-    if (username) query.username = username;
-
-    const comments = await Comments.find(query);
-    res.status(200).json(comments);
-  } catch (error) {
-    console.error("Failed to get comments:", error);
-    res.status(500).send("Cannot find comments");
-  }
-};
-
 // POST Create Comment (Token Protected)
 const createComment = async (req, res) => {
   const { postId, text } = req.body;
@@ -41,6 +22,25 @@ const createComment = async (req, res) => {
   } catch (error) {
     console.error("Database Error:", error);
     res.status(500).send("Database Error");
+  }
+};
+
+// GET Comments (Public)
+const getComments = async (req, res) => {
+  const { postId, username } = req.query;
+
+  try {
+    await ConnectDB();
+
+    const query = {};
+    if (postId) query.postId = postId;
+    if (username) query.username = username;
+
+    const comments = await Comments.find(query);
+    res.status(200).json(comments);
+  } catch (error) {
+    console.error("Failed to get comments:", error);
+    res.status(500).send("Cannot find comments");
   }
 };
 
