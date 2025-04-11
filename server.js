@@ -17,15 +17,14 @@ app.use(
     credentials: true,
   })
 );
+
+app.use(express.json({ limit: "10mb" })); // For parsing application/json
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+
 app.use((req, res, next) => {
   console.log(`[${req.method}] ${req.originalUrl}`);
   next();
 });
-
-app.use("/api/post", require("./routes/postsRoute"));
-
-app.use(express.json({ limit: "10mb" })); // For parsing application/json
-app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // Connect to DB
 ConnectDB();
@@ -33,7 +32,7 @@ ConnectDB();
 // Routes
 app.use("/api/auth", require("./routes/authRoute"));
 app.use("/api/comments", require("./routes/commentRoute"));
-
+app.use("/api/post", require("./routes/postsRoute"));
 app.use("/api/users", require("./routes/userRoute"));
 
 // Base route

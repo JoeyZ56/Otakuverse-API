@@ -5,7 +5,7 @@ const jwt = require("jsonwebtoken");
 
 //POST
 const createUser = async (req, res) => {
-  const { name, email, password, profileImage } = req.body;
+  const { name, email, password } = req.body;
 
   try {
     await ConnectDB();
@@ -19,6 +19,10 @@ const createUser = async (req, res) => {
       return res.status(400).send("Email or Username already in use");
     }
 
+    if (!password) {
+      return res.status(400).send("Password is required");
+    }
+
     //Hash password
     const hashedPassword = await bcrypt.hash(password, 5);
 
@@ -27,7 +31,12 @@ const createUser = async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      profileImage,
+      profileImage: req.file
+        ? {
+            data: req.file.buffer,
+            contentType: req.file.mimetype,
+          }
+        : undefined,
     });
 
     await newUser.save();
