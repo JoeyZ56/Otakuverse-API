@@ -1,6 +1,7 @@
 const User = require("../models/User");
 const ConnectDB = require("../libs/db");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 //POST
 const createUser = async (req, res) => {
@@ -63,7 +64,6 @@ const loginUser = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
-        profileImage: user.profileImage,
       },
       process.env.JWT_SECRET,
       { expiresIn: "7d" } //User will be logged in for 7 days before having to re-log in

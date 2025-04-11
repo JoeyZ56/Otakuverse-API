@@ -19,29 +19,40 @@ const getPostById = async (req, res) => {
 
 //POST Create Post (Token Protected)
 const createPost = async (req, res) => {
-  const { title, content, img } = req.body;
-  const { id: userId, name, profileImage } = req.user;
-
+  console.log("createPost controller hit");
   try {
     await ConnectDB();
 
+    const { title, content, excerpt } = req.body;
+    const { id: userId, name, profileImage } = req.user;
+
+    if (!req.file) {
+      return res.status(400).send("Image file required");
+    }
+
     const newPost = new Post({
-      author: userId,
       title,
+      excerpt,
       content,
-      img,
-      username: name, // Snapshot for display
-      profileImage: profileImage || "", // Optional
+      author: userId,
+      username: name,
+      profileImage: profileImage || "",
+      img: {
+        data: req.file.buffer,
+        contentType: req.file.mimetype,
+      },
     });
 
-    await newPost.save();
+    const savedPost = await newPost.save();
+    console.log(savedPost);
 
-    res
-      .status(201)
-      .json({ message: "Post created successfully", post: newPost });
+    res.status(201).json({
+      message: "Post created successfully",
+      post: newPost._id,
+    });
   } catch (err) {
-    console.error("Failed to create post:", err);
-    res.status(500).send("Database Error");
+    console.error("Error saving post to DB:", err);
+    res.status(500).send("Database save fail");
   }
 };
 
@@ -73,4 +84,4 @@ const deletePostById = async (req, res) => {
   }
 };
 
-module.exports = { getPostById, deletePostById };
+module.exports = { createPost, getPostById, deletePostById };

@@ -15,14 +15,27 @@ const postSchema = new Schema(
       required: true,
     },
 
-    img: {
+    excerpt: {
       type: String,
       required: true,
     },
+
     content: {
       type: String,
       required: true,
     },
+
+    img: {
+      data: {
+        type: Buffer,
+        required: true,
+      },
+      contentType: {
+        type: String,
+        required: true,
+      },
+    },
+
     username: {
       type: String,
       required: true,
