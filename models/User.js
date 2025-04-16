@@ -28,6 +28,10 @@ const userSchema = new Schema(
         required: true,
       },
     },
+    bio: {
+      type: String,
+      default: "",
+    },
   },
   { timestamps: true }
 );
