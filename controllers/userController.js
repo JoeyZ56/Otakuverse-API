@@ -1,6 +1,27 @@
 const User = require("../models/User");
-const Bio = require("../models/Bio");
 const ConnectDB = require("../libs/db");
+const { default: mongoose } = require("mongoose");
+
+//USER INFO
+//GET USER INFO (Token protected)
+const getUserById = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await ConnectDB();
+
+    const user = await User.findById(id).select("-password"); //exclude password
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json(user);
+  } catch (err) {
+    console.error("Error finding user by ID:", err);
+    res.status(500).send("Server Error");
+  }
+};
 
 // Update user info (Token protected)
 const updateUserById = async (req, res) => {
@@ -27,6 +48,7 @@ const updateUserById = async (req, res) => {
   }
 };
 
+//USER IMAGE
 // GET profile image (public)
 const getProfileImage = async (req, res) => {
   const { email } = req.query;
@@ -72,74 +94,77 @@ const updateProfileImage = async (req, res) => {
   }
 };
 
+//USER BIO
 // GET bio (public)
 const getBio = async (req, res) => {
+  console.log("Inside getBio function");
+  console.log("User in req:", req.user); // Log the user from the request
+
+  const { _id } = req.user || {}; // Safely get user _id from the JWT payload
+  if (!_id) {
+    return res
+      .status(401)
+      .json({ message: "Unauthorized: User ID not found in token" });
+  }
+  console.log("Decoded user ID from token:", _id); // Log the decoded user _id
+
   try {
     await ConnectDB();
-    const email = decodeURIComponent(req.query.email);
-    const bio = await Bio.findOne({ email });
 
-    if (!bio) {
-      return res.status(404).send("Bio not found");
+    // Ensure that _id is a valid ObjectId
+    if (!mongoose.Types.ObjectId.isValid(_id)) {
+      return res.status(400).json({ message: "Invalid user ID" });
     }
 
-    res.status(200).json(bio);
-  } catch (error) {
-    console.error("GET Database Error:", error);
-    res.status(500).send("Database Error");
-  }
-};
+    // Query the User model using the _id from the decoded JWT token
+    const user = await User.findById(_id).select("bio"); // Only select bio
+    console.log("User bio from DB:", user); // Log the user object to verify the bio field
 
-// POST create/update bio (Token protected)
-const createOrUpdateBio = async (req, res) => {
-  const { bio } = req.body;
-  const { email } = req.user;
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
-  if (!email || !bio) {
-    return res.status(400).json({ error: "Email and bio are required" });
-  }
-
-  try {
-    await ConnectDB();
-
-    const updatedBio = await Bio.findOneAndUpdate(
-      { email },
-      { $set: { bio } },
-      { new: true, upsert: true }
-    );
-
-    res.status(200).json({
-      message: "Bio updated successfully",
-      bio: updatedBio,
-    });
-  } catch (error) {
-    console.error("POST Database Error:", error);
-    res.status(500).json({ error: "Database error, unable to update bio" });
+    // Return bio as part of the response
+    res.status(200).json({ bio: user.bio });
+  } catch (err) {
+    console.error("Error fetching bio:", err);
+    res.status(500).json({ message: "Server error fetching bio" });
   }
 };
 
 // PUT bio (Token protected)
 const updateBio = async (req, res) => {
-  const { bio } = req.body;
-  const { email } = req.user;
+  const { _id } = req.user; // Get user id from JWT
+  const { bio } = req.body; // Get new bio from the request body
+
+  console.log("User ID from token:", _id);
+  console.log("Updating bio:", bio);
 
   try {
     await ConnectDB();
 
-    const updatedBio = await Bio.findOneAndUpdate(
-      { email },
+    // Ensure that id is a valid ObjectId
+    if (!mongoose.Types.ObjectId.isValid(_id)) {
+      return res.status(400).json({ message: "invalid user ID" });
+    }
+    //Query
+    const updateUserBio = await User.findByIdAndUpdate(
+      _id,
       { bio },
       { new: true }
     );
 
-    if (!updatedBio) {
-      return res.status(404).send("Bio not found");
+    if (!updateUserBio) {
+      return res.status(404).json({ message: "User not found" });
     }
 
-    res.status(200).send("Bio has been updated");
-  } catch (error) {
-    console.error("PUT Database Error:", error);
-    res.status(500).send("Database Error");
+    res.status(200).json({
+      message: "User bio has been updated",
+      user: updateUserBio,
+    });
+  } catch (err) {
+    console.error("Error updating Bio:", err);
+    res.status(500).json({ message: "Database Error" });
   }
 };
 
@@ -164,11 +189,11 @@ const deleteBio = async (req, res) => {
 };
 
 module.exports = {
+  getUserById,
   updateUserById,
   updateProfileImage,
   getProfileImage,
   getBio,
-  createOrUpdateBio,
   updateBio,
   deleteBio,
 };
