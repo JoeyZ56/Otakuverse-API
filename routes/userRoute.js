@@ -5,23 +5,23 @@ const {
   updateProfileImage,
   getProfileImage,
   getBio,
-  createOrUpdateBio,
   updateBio,
   deleteBio,
+  getUserById,
 } = require("../controllers/userController");
 const verifyToken = require("../middleware/authMiddleware");
 
 // User Account Info
-router.put("/account/", verifyToken, updateUserById);
+router.get("/account/:id", getUserById);
+router.put("/account", verifyToken, updateUserById);
 
 // User Profile Image
 router.get("/account/profile-image", getProfileImage);
 router.put("/account/profile-image", verifyToken, updateProfileImage);
 
 // USer Bio
-router.get("/account/bio", getBio);
-router.post("/account/bio", verifyToken, createOrUpdateBio);
-router.put("/account/bio", verifyToken, updateBio);
-router.delete("/account/bio", verifyToken, deleteBio);
+router.get("/account/bio", verifyToken, getBio);
+router.put("/account/bio/save", verifyToken, updateBio);
+router.delete("/account/bio/delete", verifyToken, deleteBio);
 
 module.exports = router;
