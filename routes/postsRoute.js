@@ -3,6 +3,7 @@ const router = express.Router();
 const {
   createPost,
   getAllPosts,
+  getUserPosts,
   getPostById,
   deletePostById,
 } = require("../controllers/postsController");
@@ -15,6 +16,8 @@ router.post("/", verifyToken, upload.single("img"), (req, res) => {
 });
 
 router.get("/", getAllPosts);
+
+router.get("/user/posts", verifyToken, getUserPosts);
 
 router.get("/:id", getPostById);
 

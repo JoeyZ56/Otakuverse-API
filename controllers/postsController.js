@@ -65,6 +65,27 @@ const getAllPosts = async (req, res) => {
   }
 };
 
+//Get users posts (private)
+const getUserPosts = async (req, res) => {
+  const { _id } = req.user;
+
+  try {
+    await ConnectDB();
+
+    //Find posts that belong to the logged in user
+    const posts = await Post.find({ author: _id }).sort({ createdAt: -1 });
+
+    if (!posts.length) {
+      return res.status(404).json({ message: "No posts found for this user" });
+    }
+
+    res.status(200).json({ posts });
+  } catch (err) {
+    console.error("Error fetching user posts:", err);
+    res.status(500).send("Database error fetching user posts");
+  }
+};
+
 //Get Post By Id (Public)
 const getPostById = async (req, res) => {
   const { id } = req.params;
@@ -109,4 +130,10 @@ const deletePostById = async (req, res) => {
   }
 };
 
-module.exports = { createPost, getAllPosts, getPostById, deletePostById };
+module.exports = {
+  createPost,
+  getAllPosts,
+  getUserPosts,
+  getPostById,
+  deletePostById,
+};
