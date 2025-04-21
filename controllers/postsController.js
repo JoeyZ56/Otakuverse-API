@@ -67,22 +67,25 @@ const getAllPosts = async (req, res) => {
 
 //Get users posts (private)
 const getUserPosts = async (req, res) => {
-  const { _id } = req.user;
-
   try {
-    await ConnectDB();
+    const userId = req.user.id;
 
-    //Find posts that belong to the logged in user
-    const posts = await Post.find({ author: _id }).sort({ createdAt: -1 });
-
-    if (!posts.length) {
-      return res.status(404).json({ message: "No posts found for this user" });
+    //Find User by ID
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
 
-    res.status(200).json({ posts });
+    //Get all posts for this user
+    const posts = await Post.find({ auth: userId }).sort({ createdAt: -1 });
+
+    res.status(200).json({
+      name: user.name,
+      posts: posts,
+    });
   } catch (err) {
     console.error("Error fetching user posts:", err);
-    res.status(500).send("Database error fetching user posts");
+    res.status(500).send("Database error");
   }
 };
 
